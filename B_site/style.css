@@ -1,1 +1,13 @@
+body {
+  font-family: sans-serif;
+  background-color: #f8f9fa;
+  padding: 2em;
+  text-align: center;
+}
+
+#lyrics {
+  font-size: 2rem;
+  margin-top: 3em;
+  color: #333;
+}
 
