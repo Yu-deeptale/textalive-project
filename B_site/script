@@ -1,1 +1,37 @@
+// TextAlive Player を使って歌詞同期する
+const player = new TextAliveApp.Player({
+  app: {
+    token: "NBZHM9qea7HkVZBf" // ← TextAlive APIトークンを入力
+  },
+  mediaElement: document.querySelector("audio"), // メディア要素があれば指定
+  // 以下はデモ楽曲
+  songUrl: "https://piapro.jp/t/9aK1/20220114010221",
+  video: {
+    // "空白のページに" by 40mP feat. 初音ミク
+    beatId: 4088577,
+    chordId: 1117,
+    lyricId: 53710,
+    lyricDiffId: 5637
+  }
+});
+
+// 歌詞を表示するエリア
+const lyricsEl = document.getElementById("lyrics");
+
+// 歌詞の各フレーズが再生されるたびに更新
+player.addListener({
+  onAppReady: (app) => {
+    if (!app.songUrl) {
+      player.createFromSongUrl("https://piapro.jp/t/9aK1/20220114010221");
+    }
+  },
+
+  onTimeUpdate: (position) => {
+    const beat = player.findBeat(position);
+    const phrase = player.video.findPhrase(position);
+    if (phrase && phrase.text) {
+      lyricsEl.textContent = phrase.text;
+    }
+  }
+});
 
