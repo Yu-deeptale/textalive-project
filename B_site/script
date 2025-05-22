@@ -1,37 +1,33 @@
-// TextAlive Player を使って歌詞同期する
-const player = new TextAliveApp.Player({
-  app: {
-    token: "NBZHM9qea7HkVZBf" // ← TextAlive APIトークンを入力
-  },
-  mediaElement: document.querySelector("audio"), // メディア要素があれば指定
-  // 以下はデモ楽曲
-  songUrl: "https://piapro.jp/t/9aK1/20220114010221",
-  video: {
-    // "空白のページに" by 40mP feat. 初音ミク
-    beatId: 4088577,
-    chordId: 1117,
-    lyricId: 53710,
-    lyricDiffId: 5637
-  }
-});
+import { contentData } from "../content.js";
+import { Player } from "https://unpkg.com/textalive-app-api/dist/index.js";
 
-// 歌詞を表示するエリア
+// 内容を分割して表示
+const lines = contentData.map(d => d.text.split("。")).flat().filter(Boolean);
+
 const lyricsEl = document.getElementById("lyrics");
 
-// 歌詞の各フレーズが再生されるたびに更新
-player.addListener({
-  onAppReady: (app) => {
-    if (!app.songUrl) {
-      player.createFromSongUrl("https://piapro.jp/t/9aK1/20220114010221");
-    }
-  },
-
-  onTimeUpdate: (position) => {
-    const beat = player.findBeat(position);
-    const phrase = player.video.findPhrase(position);
-    if (phrase && phrase.text) {
-      lyricsEl.textContent = phrase.text;
-    }
-  }
+lines.forEach((line, i) => {
+  const div = document.createElement("div");
+  div.className = "line";
+  div.id = `line-${i}`;
+  div.textContent = line + "。";
+  lyricsEl.appendChild(div);
 });
 
+const player = new Player({
+  app: { token: "your-token-here" },  // テスト用なら空でも可
+  mediaElement: document.createElement("audio"),
+  mediaUrl: "https://www.youtube.com/watch?v=3cZNiY0A0gY", // 任意の音楽
+});
+
+player.addListener({
+  onTimeUpdate: (position) => {
+    const index = Math.floor(position / 2000); // 2秒ごとに1文ずつ表示
+    document.querySelectorAll(".line").forEach(el => el.classList.remove("active"));
+    const active = document.getElementById(`line-${index}`);
+    if (active) active.classList.add("active");
+  },
+  onAppReady: () => {
+    player.video && player.requestPlay();
+  }
+});
