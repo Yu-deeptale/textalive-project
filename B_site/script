@@ -15,7 +15,7 @@ lines.forEach((line, i) => {
 });
 
 const player = new Player({
-  app: { token: "your-token-here" },  // テスト用なら空でも可
+  app: { token: "NBZHM9qea7HkVZBf" },  // テスト用なら空でも可
   mediaElement: document.createElement("audio"),
   mediaUrl: "https://www.youtube.com/watch?v=3cZNiY0A0gY", // 任意の音楽
 });
