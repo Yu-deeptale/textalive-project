@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>モーラ音程表示プロトタイプ</title>
+  <style>
+    body { margin: 0; background: #111; color: white; font-family: sans-serif; }
+    canvas { display: block; width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+<canvas id="karaokeCanvas"></canvas>
+<script type="module">
+  import { Player } from "https://unpkg.com/textalive-app-api";
+
+  const canvas = document.getElementById("karaokeCanvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const player = new Player({
+    app: { token: "YOUR_API_TOKEN" },
+    mediaElement: document.createElement("audio"),
+    score: true,
+    vocalAmplitudeEnabled: true
+  });
+
+  let moras = [];
+
+  // 曲の読み込み完了時にモーラ取得
+  player.addListener({
+    onAppReady: (app) => {
+      if (!app.songUrl) {
+        player.createFromSongUrl("https://piapro.jp/t/4wC5", {
+          video: { beatId: 4268028, chordId: 1116, lyricId: 5212, lyricDiffId: 3169 }
+        });
+      }
+    },
+
+    onVideoReady: () => {
+      const phrases = player.video.song.phrases;
+      moras = phrases.flatMap(p => p.moras.filter(m => m.pitch != null));
+      player.requestPlay();
+    },
+
+    onTimeUpdate: (pos) => {
+      draw(pos);
+    }
+  });
+
+  function draw(currentTime) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const scaleX = 0.1;  // 時間→X座標変換係数（ms → px）
+    const scaleY = 5;    // ピッチ→Y座標係数
+
+    // ガイドライン（現在位置）
+    ctx.strokeStyle = "#444";
+    ctx.beginPath();
+    ctx.moveTo(centerX, 0);
+    ctx.lineTo(centerX, canvas.height);
+    ctx.stroke();
+
+    // モーラノーツの描画
+    ctx.lineWidth = 2;
+    for (let i = 0; i < moras.length - 1; i++) {
+      const m1 = moras[i];
+      const m2 = moras[i + 1];
+
+      const t1 = m1.startTime;
+      const t2 = m2.startTime;
+
+      const x1 = centerX + (t1 - currentTime) * scaleX;
+      const x2 = centerX + (t2 - currentTime) * scaleX;
+
+      const y1 = centerY - (m1.pitch - 60) * scaleY;
+      const y2 = centerY - (m2.pitch - 60) * scaleY;
+
+      // 補完線（直線）
+      ctx.strokeStyle = "#33ccff";
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      // モーラ点
+      ctx.fillStyle = "white";
+      ctx.beginPath();
+      ctx.arc(x1, y1, 4, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+  }
+</script>
+</body>
+</html>
