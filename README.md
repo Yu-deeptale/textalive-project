@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # TextAlive App API lyric sheet example
 
 インタラクティブな歌詞カードを実装した TextAlive App API のサンプルコードです。
@@ -46,3 +47,6 @@ TextAlive App API について詳しくはWebサイト [TextAlive for Developers
 
 ---
 https://github.com/TextAliveJp/textalive-app-lyric-sheet
+=======
+# textalive-project
+>>>>>>> d172bc4be9bb81b1f23fb1e00c96f965023a3dd7
