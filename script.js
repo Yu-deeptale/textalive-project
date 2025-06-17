@@ -118,20 +118,19 @@ player.addListener({
 
   /* 再生位置の情報が更新されたら呼ばれる */
   onTimeUpdate(position) {
-    // シークバーの表示を更新
-    paintedSeekbar.style.width = `${
-      parseInt((position * 1000) / player.video.duration) / 10
-    }%`;
-
-    // 歌詞アニメーション
     lyricsMap.forEach((item) => {
-      if (
-        position >= item.startTime &&
-        position < item.endTime
-      ) {
-        item.el.classList.add("active-lyric");
-      } else {
+      if (position >= item.endTime) {
+        // 歌唱済み
+        item.el.classList.add("sung-lyric");
         item.el.classList.remove("active-lyric");
+      } else if (position >= item.startTime && position < item.endTime) {
+        // 歌唱中
+        item.el.classList.add("active-lyric");
+        item.el.classList.remove("sung-lyric");
+      } else {
+        // 未歌唱
+        item.el.classList.remove("active-lyric");
+        item.el.classList.remove("sung-lyric");
       }
     });
 
@@ -253,15 +252,7 @@ function renderAllLyrics(video) {
 
 /* 歌詞アニメーション用のCSSを追加してください（例） */
 /*
-.lyric-char {
-  transition: color 0.2s, text-shadow 0.2s;
-}
-.active-lyric {
-  color: #ffb347 !important;
-  text-shadow: 0 0 8px #fff, 0 0 16px #ffb347;
-}
-.bar-space {
-  letter-spacing: 0.5em;
+
 }
 */
 
