@@ -237,3 +237,17 @@ body {
   height: 100%;
   background: rgba(255 255 255 / 80%);
 }
+
+/* 歌詞アニメーション用のCSSを追加してください（例） */
+
+.lyric-char {
+  transition: color 0.2s, text-shadow 0.2s;
+}
+.active-lyric {
+  color: #ffb347 !important;
+  text-shadow: 0 0 8px #fff, 0 0 16px #ffb347;
+}
+.bar-space {
+  letter-spacing: 0.5em;
+}
+

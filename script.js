@@ -48,6 +48,9 @@ const textContainer = document.querySelector("#text");
 const seekbar = document.querySelector("#seekbar");
 const paintedSeekbar = seekbar.querySelector("div");
 let lastTime = -1;
+let lastCharTime = -1; // 直近の歌詞発声時刻
+
+let lyricsMap = []; // 歌詞とタイミング・DOM要素のリスト
 
 player.addListener({
   /* APIの準備ができたら呼ばれる */
@@ -98,12 +101,11 @@ player.addListener({
 
   /* 楽曲情報が取れたら呼ばれる */
   onVideoReady(video) {
-    // 楽曲情報を表示
     document.querySelector("#artist span").textContent =
       player.data.song.artist.name;
     document.querySelector("#song span").textContent = player.data.song.name;
 
-    // 最後に取得した再生時刻の情報をリセット
+    renderAllLyrics(video); // 歌詞を最初から全て描画
     lastTime = -1;
   },
 
@@ -121,47 +123,18 @@ player.addListener({
       parseInt((position * 1000) / player.video.duration) / 10
     }%`;
 
-    // 新しいビートを検出
-    const beats = player.findBeatChange(lastTime, position);
-    if (
-      lastTime >= 0 &&
-      // ↑初期化された直後はビート検出しない
-      beats.entered.length > 0
-      // ↑二拍ごとにしたければ
-      //   && beats.entered.find((b) => b.position % 2 === 1)
-      // のような条件を足してチェックすればよい
-    ) {
-      // ビート同期のアニメーションを発火させる
-      requestAnimationFrame(() => {
-        bar.className = "active";
-        requestAnimationFrame(() => {
-          bar.className = "active beat";
-        });
-      });
-    }
+    // 歌詞アニメーション
+    lyricsMap.forEach((item) => {
+      if (
+        position >= item.startTime &&
+        position < item.endTime
+      ) {
+        item.el.classList.add("active-lyric");
+      } else {
+        item.el.classList.remove("active-lyric");
+      }
+    });
 
-    // 歌詞情報がなければこれで処理を終わる
-    if (!player.video.firstChar) {
-      return;
-    }
-
-    // 巻き戻っていたら歌詞表示をリセットする
-    if (lastTime > position + 1000) {
-      resetChars();
-    }
-
-    // 500ms先に発声される文字を検出
-    // 初回は開始時からの差分区間、それ以降は前回実行時からの差分区間を検出
-    const chars = player.video.findCharChange(
-      lastTime < 0 ? lastTime : lastTime + 500,
-      position + 500
-    );
-    for (const c of chars.entered) {
-      // 新しい文字が発声されようとしている
-      newChar(c);
-    }
-
-    // 次回呼ばれるときのために再生時刻を保存しておく
     lastTime = position;
   },
 
@@ -218,55 +191,78 @@ seekbar.addEventListener("click", (e) => {
 });
 
 /**
- * 新しい文字の発声時に呼ばれる
- * Called when a new character is being vocalized
+ * 歌詞を最初から全て表示し、1秒以上空く場合は2行改行
  */
-function newChar(current) {
-  // 品詞 (part-of-speech)
-  // https://developer.textalive.jp/packages/textalive-app-api/interfaces/iword.html#pos
-  const classes = [];
-  if (
-    current.parent.pos === "N" ||
-    current.parent.pos === "PN" ||
-    current.parent.pos === "X"
-  ) {
-    classes.push("noun");
-  }
+function renderAllLyrics(video) {
+  lyricsMap = [];
+  textContainer.innerHTML = "";
 
-  // フレーズの最後の文字か否か
-  if (current.parent.parent.lastChar === current) {
-    classes.push("lastChar");
-  }
+  if (!video || !video.firstChar) return;
 
-  // 英単語の最初か最後の文字か否か
-  if (current.parent.language === "en") {
-    if (current.parent.lastChar === current) {
-      classes.push("lastCharInEnglishWord");
-    } else if (current.parent.firstChar === current) {
-      classes.push("firstCharInEnglishWord");
+  let prevBar = null;
+  let currentBar = null;
+  let prevCharEnd = null;
+  let prevPhrase = null;
+  let currentPhrase = null;
+
+  // すべての文字を時系列順にたどる
+  for (let ch = video.firstChar; ch; ch = ch.next) {
+    currentBar = ch.parent.parent.parent;   // bar
+    currentPhrase = ch.parent.parent;       // phrase
+
+    // バーが変わったらスペースを追加
+    if (prevBar !== currentBar) {
+      if (prevBar) {
+        // 前のバーがあればスペースを追加
+        const barSpace = document.createElement("span");
+        barSpace.className = "bar-space";
+        barSpace.textContent = "　"; // 全角スペース
+        textContainer.appendChild(barSpace);
+      }
     }
+
+    // 0.5秒以上空いた場合、かつフレーズの先頭なら2行改行
+    if (
+      prevCharEnd !== null &&
+      ch.startTime - prevCharEnd > 500 &&
+      prevPhrase !== null &&
+      currentPhrase !== prevPhrase // フレーズが変わった時のみ
+    ) {
+      textContainer.appendChild(document.createElement("br"));
+      textContainer.appendChild(document.createElement("br"));
+    }
+
+    // 歌詞文字をspanで追加
+    const charSpan = document.createElement("span");
+    charSpan.textContent = ch.text;
+    charSpan.className = "lyric-char";
+    textContainer.appendChild(charSpan);
+
+    // 歌詞アニメーション用にリストへ
+    lyricsMap.push({
+      el: charSpan,
+      startTime: ch.startTime,
+      endTime: ch.endTime || ch.startTime + 500,
+    });
+
+    prevBar = currentBar;
+    prevCharEnd = ch.endTime || ch.startTime;
+    prevPhrase = currentPhrase;
   }
-
-  // noun, lastChar クラスを必要に応じて追加
-  const div = document.createElement("div");
-  div.appendChild(document.createTextNode(current.text));
-
-  // 文字を画面上に追加
-  const container = document.createElement("div");
-  container.className = classes.join(" ");
-  container.appendChild(div);
-  container.addEventListener("click", () => {
-    player.requestMediaSeek(current.startTime);
-  });
-  textContainer.appendChild(container);
 }
 
-/**
- * 歌詞表示をリセットする
- * Reset lyrics view
- */
-function resetChars() {
-  lastTime = -1;
-  while (textContainer.firstChild)
-    textContainer.removeChild(textContainer.firstChild);
+/* 歌詞アニメーション用のCSSを追加してください（例） */
+/*
+.lyric-char {
+  transition: color 0.2s, text-shadow 0.2s;
 }
+.active-lyric {
+  color: #ffb347 !important;
+  text-shadow: 0 0 8px #fff, 0 0 16px #ffb347;
+}
+.bar-space {
+  letter-spacing: 0.5em;
+}
+*/
+
+
