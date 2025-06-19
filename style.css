@@ -70,15 +70,15 @@ body {
 
 /* 再生ボタン / Play button */
 #control {
-  font-size: 21px;
+  font-size: 63px;
   padding-right: 10px;
-  border-right: 1px solid #fff9;
+  border-right: 1px solid rgba(255, 255, 255, 0.6);
 }
 #control.disabled {
   display: none;
 }
 #control a {
-  color: rgb(99 208 226);
+  color: rgb(255, 255, 255);
   text-decoration: none;
 }
 #control a.disabled {
@@ -174,8 +174,8 @@ body {
   line-height: 2em;
   font-size: 36px;
   font-family: "Shippori Mincho B1", serif;
-  color: #e2f8fc;
-  text-shadow: 2px 2px 3px #e4215a;
+  color: #d1f8ff;
+  text-shadow: 2px 2px 3px #bbb7b8;
   user-select: none;
   cursor: pointer;
 
@@ -227,7 +227,7 @@ body {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 50px;
+  bottom: 100px;
   
   height: 10px;
   background: rgba(255 255 255 / 40%);
@@ -247,7 +247,7 @@ body {
   width: 18px;
   height: 18px;
   background: #fff;
-  border: 3px solid #e74c3c;
+  border: 3px solid #dd003c;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
@@ -258,17 +258,30 @@ body {
 /* 歌詞アニメーション用のCSS */
 
 .lyric-char {
+  color: #ffffff88; /* 半透明の白 */
   transition: color 0.2s, text-shadow 0.2s;
-  color: #e2f8fc;
 }
 
-.sung-lyric {
-  color: #e74c3c !important; /* 歌唱済みは赤 */
-  text-shadow: 0 0 8px #fff, 0 0 16px #e74c3c;
-}
-
+.sung-lyric,
 .active-lyric {
-  color: #e74c3c !important; /* 歌唱中も赤 */
-  text-shadow: 0 0 8px #fff, 0 0 16px #e74c3c;
+  color: #dd003c !important; /* 発声後は赤 */
+  /* text-shadow: 0 0 8px #fff, 0 0 16px #fff; */
+}
+
+/* 再生コントロールをシークバー下・中央に配置 */
+.control-bottom {
+  position: fixed;
+  left: 50%;
+  bottom: 10px; /* シークバーの高さ+余白に合わせて調整 */
+  transform: translateX(-50%);
+  z-index: 10;
+  background: none;
+  border: none;
+  box-shadow: none;
+  display: flex;
+  gap: 16px;
+  font-size: 24px;
+  align-items: center;
+  pointer-events: auto;
 }
 

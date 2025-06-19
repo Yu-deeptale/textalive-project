@@ -20,11 +20,6 @@
 
     <!-- ヘッダ / Header -->
     <div id="header">
-      <!-- 再生コントロール / Playback control -->
-      <div id="control" class="far">
-        <a href="#" id="play" class="disabled">&#xf144;</a>
-        <a href="#" id="stop" class="disabled">&#xf28d;</a>
-      </div>
       <!-- アーティストと楽曲の情報 / Artist and song info -->
       <div id="meta">
         <div id="artist">artist: <span>-</span></div>
@@ -46,6 +41,12 @@
     <!-- シークバー（最下部に移動） -->
     <div id="seekbar">
       <div></div>
+    </div>
+
+    <!-- 再生コントロールをシークバーの下・中央に配置 -->
+    <div id="control" class="far control-bottom">
+      <a href="#" id="play" class="disabled">&#xf144;</a>
+      <a href="#" id="stop" class="disabled">&#xf28d;</a>
     </div>
 
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
