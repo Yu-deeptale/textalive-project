@@ -236,6 +236,98 @@ seekbar.addEventListener("click", (e) => {
   return false;
 });
 
+// --- シークバーのドラッグ＆ホバー対応 ---
+
+let isDragging = false;
+
+// シークバーの再生時間表示用ツールチップ
+let seekbarTooltip = document.getElementById("seekbar-tooltip");
+if (!seekbarTooltip) {
+  seekbarTooltip = document.createElement("div");
+  seekbarTooltip.id = "seekbar-tooltip";
+  document.body.appendChild(seekbarTooltip);
+}
+seekbarTooltip.style.position = "fixed";
+seekbarTooltip.style.display = "none";
+seekbarTooltip.style.pointerEvents = "none";
+seekbarTooltip.style.background = "rgba(0,0,0,0.7)";
+seekbarTooltip.style.color = "#fff";
+seekbarTooltip.style.padding = "4px 12px";
+seekbarTooltip.style.borderRadius = "12px";
+seekbarTooltip.style.fontSize = "16px";
+seekbarTooltip.style.zIndex = "1000";
+
+// 時間表示フォーマット
+function formatTime(ms) {
+  const totalSec = Math.floor(ms / 1000);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${m}分${s}秒`;
+}
+
+// シークバーでドラッグ開始
+seekbar.addEventListener("mousedown", (e) => {
+  isDragging = true;
+  handleSeekbarMove(e);
+  document.body.style.userSelect = "none";
+});
+
+// ドラッグ中の処理
+document.addEventListener("mousemove", (e) => {
+  if (isDragging) {
+    handleSeekbarMove(e);
+  }
+});
+
+// ドラッグ終了
+document.addEventListener("mouseup", (e) => {
+  if (isDragging) {
+    isDragging = false;
+    handleSeekbarMove(e, true); // ドラッグ終了時に再生位置を確定
+    seekbarTooltip.style.display = "none";
+    document.body.style.userSelect = "";
+  }
+});
+
+// シークバー上でホバー時に時間表示
+seekbar.addEventListener("mousemove", (e) => {
+  if (!player || !player.video) return;
+  const seekbarRect = seekbar.getBoundingClientRect();
+  const percent = Math.min(Math.max((e.clientX - seekbarRect.left) / seekbarRect.width, 0), 1);
+  const seekTime = player.video.duration * percent;
+  seekbarTooltip.textContent = formatTime(seekTime);
+  seekbarTooltip.style.display = "block";
+  seekbarTooltip.style.left = `${e.clientX - seekbarTooltip.offsetWidth / 2}px`;
+  seekbarTooltip.style.top = `${seekbarRect.top - 36}px`;
+});
+
+// シークバーからマウスが離れたらツールチップ非表示
+seekbar.addEventListener("mouseleave", () => {
+  if (!isDragging) seekbarTooltip.style.display = "none";
+});
+
+// シークバーの移動・確定処理
+function handleSeekbarMove(e, seek = false) {
+  if (!player || !player.video) return;
+  const seekbarRect = seekbar.getBoundingClientRect();
+  const percent = Math.min(Math.max((e.clientX - seekbarRect.left) / seekbarRect.width, 0), 1);
+  const seekTime = player.video.duration * percent;
+
+  // シークバーのインジケーターを移動
+  seekbarIndicator.style.left = `calc(${percent * 100}% )`;
+
+  // ツールチップ表示
+  seekbarTooltip.textContent = formatTime(seekTime);
+  seekbarTooltip.style.display = "block";
+  seekbarTooltip.style.left = `${e.clientX - seekbarTooltip.offsetWidth / 2}px`;
+  seekbarTooltip.style.top = `${seekbarRect.top - 36}px`;
+
+  // ドラッグ終了時に再生位置を変更
+  if (seek) {
+    player.requestMediaSeek(seekTime);
+  }
+}
+
 /**
  * 歌詞を最初から全て表示し、1秒以上空く場合は2行改行
  */
