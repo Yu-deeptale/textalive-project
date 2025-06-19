@@ -52,6 +52,11 @@ let lastCharTime = -1; // 直近の歌詞発声時刻
 
 let lyricsMap = []; // 歌詞とタイミング・DOM要素のリスト
 
+// シークバーインジケーター生成
+let seekbarIndicator = document.createElement("div");
+seekbarIndicator.className = "seekbar-indicator";
+seekbar.appendChild(seekbarIndicator);
+
 player.addListener({
   /* APIの準備ができたら呼ばれる */
   onAppReady(app) {
@@ -127,12 +132,43 @@ player.addListener({
         // 歌唱中
         item.el.classList.add("active-lyric");
         item.el.classList.remove("sung-lyric");
+
+        // 歌唱中の歌詞の印象を取得
+        const textUnit = item.textUnit; // lyricsMap作成時にtextUnitを保存しておく
+        let bgColor = "#c33c68"; // デフォルト
+
+        if (textUnit && textUnit.vocalExpression) {
+          // vocalExpressionやmoodで色を変える例
+          switch (textUnit.vocalExpression) {
+            case "happy":
+              bgColor = "#ffe066";
+              break;
+            case "sad":
+              bgColor = "#6a89cc";
+              break;
+            case "angry":
+              bgColor = "#e55039";
+              break;
+            case "calm":
+              bgColor = "#78e08f";
+              break;
+            // 他にも必要に応じて追加
+            default:
+              bgColor = "#c33c68";
+          }
+        }
+        document.body.style.backgroundColor = bgColor;
+        // グラデーションを使いたい場合は backgroundImage も調整
       } else {
         // 未歌唱
         item.el.classList.remove("active-lyric");
         item.el.classList.remove("sung-lyric");
       }
     });
+
+    // インジケーター位置を更新
+    const percent = position / player.video.duration;
+    seekbarIndicator.style.left = `calc(${percent * 100}% )`;
 
     lastTime = position;
   },
@@ -196,58 +232,34 @@ function renderAllLyrics(video) {
   lyricsMap = [];
   textContainer.innerHTML = "";
 
-  if (!video || !video.firstChar) return;
+  if (!video || !video.phrases) return;
 
-  let prevBar = null;
-  let currentBar = null;
-  let prevCharEnd = null;
-  let prevPhrase = null;
-  let currentPhrase = null;
+  let phraseCount = 0;
 
-  // すべての文字を時系列順にたどる
-  for (let ch = video.firstChar; ch; ch = ch.next) {
-    currentBar = ch.parent.parent.parent;   // bar
-    currentPhrase = ch.parent.parent;       // phrase
+  // すべてのフレーズを順にたどる
+  video.phrases.forEach((phrase, idx) => {
+    // フレーズ内の文字をspanで追加
+    phrase.children.forEach((ch) => {
+      const charSpan = document.createElement("span");
+      charSpan.textContent = ch.text;
+      charSpan.className = "lyric-char";
+      textContainer.appendChild(charSpan);
 
-    // バーが変わったらスペースを追加
-    if (prevBar !== currentBar) {
-      if (prevBar) {
-        // 前のバーがあればスペースを追加
-        const barSpace = document.createElement("span");
-        barSpace.className = "bar-space";
-        barSpace.textContent = "　"; // 全角スペース
-        textContainer.appendChild(barSpace);
-      }
-    }
-
-    // 0.5秒以上空いた場合、かつフレーズの先頭なら2行改行
-    if (
-      prevCharEnd !== null &&
-      ch.startTime - prevCharEnd > 500 &&
-      prevPhrase !== null &&
-      currentPhrase !== prevPhrase // フレーズが変わった時のみ
-    ) {
-      textContainer.appendChild(document.createElement("br"));
-      textContainer.appendChild(document.createElement("br"));
-    }
-
-    // 歌詞文字をspanで追加
-    const charSpan = document.createElement("span");
-    charSpan.textContent = ch.text;
-    charSpan.className = "lyric-char";
-    textContainer.appendChild(charSpan);
-
-    // 歌詞アニメーション用にリストへ
-    lyricsMap.push({
-      el: charSpan,
-      startTime: ch.startTime,
-      endTime: ch.endTime || ch.startTime + 500,
+      // 歌詞アニメーション用にリストへ
+      lyricsMap.push({
+        el: charSpan,
+        startTime: ch.startTime,
+        endTime: ch.endTime || ch.startTime + 500,
+        textUnit: ch,
+      });
     });
 
-    prevBar = currentBar;
-    prevCharEnd = ch.endTime || ch.startTime;
-    prevPhrase = currentPhrase;
-  }
+    phraseCount++;
+    // 2フレーズごとに改行
+    if (phraseCount % 2 === 0 && idx !== video.phrases.length - 1) {
+      textContainer.appendChild(document.createElement("br"));
+    }
+  });
 }
 
 /* 歌詞アニメーション用のCSSを追加してください（例） */

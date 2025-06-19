@@ -225,9 +225,10 @@ body {
 
 #seekbar {
   position: fixed;
-  top: 0;
   left: 0;
   right: 0;
+  bottom: 50px;
+  
   height: 10px;
   background: rgba(255 255 255 / 40%);
 }
@@ -236,6 +237,22 @@ body {
   width: 0;
   height: 100%;
   background: rgba(255 255 255 / 80%);
+}
+
+/* シークバーの再生地点を◯で示す */
+#seekbar .seekbar-indicator {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border: 3px solid #e74c3c;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  box-shadow: 0 0 8px #e74c3c88;
+  z-index: 2;
 }
 
 /* 歌詞アニメーション用のCSS */
