@@ -285,3 +285,18 @@ body {
   pointer-events: auto;
 }
 
+/* style.cssに追加 */
+#time-indicator {
+  position: fixed;
+  top: 12px;
+  right: 24px;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  padding: 4px 16px;
+  border-radius: 16px;
+  font-size: 18px;
+  z-index: 100;
+  pointer-events: none;
+  font-family: monospace;
+}
+

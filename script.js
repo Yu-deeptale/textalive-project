@@ -171,6 +171,17 @@ player.addListener({
     seekbarIndicator.style.left = `calc(${percent * 100}% )`;
 
     lastTime = position;
+
+    const timeIndicator = document.getElementById("time-indicator");
+    function formatTime(ms) {
+      const totalSec = Math.floor(ms / 1000);
+      const m = Math.floor(totalSec / 60);
+      const s = totalSec % 60;
+      return `${m}分${s}秒`;
+    }
+    if (player && player.video) {
+      timeIndicator.textContent = `${formatTime(position)} / ${formatTime(player.video.duration)}`;
+    }
   },
 
   /* 楽曲の再生が始まったら呼ばれる */
@@ -201,18 +212,18 @@ document.querySelector("#control > a#play").addEventListener("click", (e) => {
   return false;
 });
 
-/* 停止ボタン */
-document.querySelector("#control > a#stop").addEventListener("click", (e) => {
-  e.preventDefault();
-  if (player) {
-    player.requestStop();
+// /* 停止ボタン */
+// document.querySelector("#control > a#stop").addEventListener("click", (e) => {
+//   e.preventDefault();
+//   if (player) {
+//     player.requestStop();
 
-    // 再生を停止したら画面表示をリセットする
-    bar.className = "";
-    resetChars();
-  }
-  return false;
-});
+//     // 再生を停止したら画面表示をリセットする
+//     bar.className = "";
+//     resetChars();
+//   }
+//   return false;
+// });
 
 /* シークバー */
 seekbar.addEventListener("click", (e) => {
