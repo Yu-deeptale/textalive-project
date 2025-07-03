@@ -2,7 +2,7 @@
  * TextAlive App API lyric sheet example
  * https://github.com/TextAliveJp/textalive-app-lyric-sheet
  *
- * インタラクティブな歌詞カードを実装した TextAlive App API のサンプルコードです。
+ * インタラクティブな歌ードを実装した TextAlive App API のサンプルコードです。
  * 発声にあわせて歌詞が表示され、歌詞をクリックするとそのタイミングに再生がシークします。
  * また、このアプリが TextAlive ホストと接続されていなければ再生コントロールを表示します。
  */
@@ -110,7 +110,8 @@ player.addListener({
       player.data.song.artist.name;
     document.querySelector("#song span").textContent = player.data.song.name;
 
-    renderAllLyrics(video); // 歌詞を最初から全て描画
+    currentBlockIdx = 0;
+    renderLyricsBlock(video, currentBlockIdx);
     lastTime = -1;
   },
 
@@ -123,44 +124,34 @@ player.addListener({
 
   /* 再生位置の情報が更新されたら呼ばれる */
   onTimeUpdate(position) {
+    // 現在再生中のフレーズインデックスを取得
+    let activePhraseIdx = -1;
+    for (let i = 0; i < lyricsMap.length; i++) {
+      if (position >= lyricsMap[i].startTime && position < lyricsMap[i].endTime) {
+        activePhraseIdx = lyricsMap[i].phraseIdx;
+        break;
+      }
+    }
+
+    // ブロックインデックスを計算
+    const blockSize = 4;
+    const newBlockIdx = activePhraseIdx >= 0 ? Math.floor(activePhraseIdx / blockSize) : 0;
+
+    // ブロックが変わったら歌詞を切り替え
+    if (newBlockIdx !== currentBlockIdx && player.video) {
+      currentBlockIdx = newBlockIdx;
+      renderLyricsBlock(player.video, currentBlockIdx);
+    }
+
+    // 歌詞の状態を更新（アニメーション等）
     lyricsMap.forEach((item) => {
       if (position >= item.endTime) {
-        // 歌唱済み
         item.el.classList.add("sung-lyric");
         item.el.classList.remove("active-lyric");
       } else if (position >= item.startTime && position < item.endTime) {
-        // 歌唱中
         item.el.classList.add("active-lyric");
         item.el.classList.remove("sung-lyric");
-
-        // 歌唱中の歌詞の印象を取得
-        const textUnit = item.textUnit; // lyricsMap作成時にtextUnitを保存しておく
-        let bgColor = "#c33c68"; // デフォルト
-
-        if (textUnit && textUnit.vocalExpression) {
-          // vocalExpressionやmoodで色を変える例
-          switch (textUnit.vocalExpression) {
-            case "happy":
-              bgColor = "#ffe066";
-              break;
-            case "sad":
-              bgColor = "#6a89cc";
-              break;
-            case "angry":
-              bgColor = "#e55039";
-              break;
-            case "calm":
-              bgColor = "#78e08f";
-              break;
-            // 他にも必要に応じて追加
-            default:
-              bgColor = "#c33c68";
-          }
-        }
-        document.body.style.backgroundColor = bgColor;
-        // グラデーションを使いたい場合は backgroundImage も調整
       } else {
-        // 未歌唱
         item.el.classList.remove("active-lyric");
         item.el.classList.remove("sung-lyric");
       }
@@ -237,8 +228,6 @@ seekbar.addEventListener("click", (e) => {
 });
 
 // --- シークバーのドラッグ＆ホバー対応 ---
-
-let isDragging = false;
 
 // シークバーの再生時間表示用ツールチップ
 let seekbarTooltip = document.getElementById("seekbar-tooltip");
@@ -365,10 +354,194 @@ function renderAllLyrics(video) {
   });
 }
 
-/* 歌詞アニメーション用のCSSを追加してください（例） */
-/*
+/**
+ * 歌詞を4フレーズずつ表示し、再生位置に合わせて切り替える（前の4フレーズは削除）
+ */
+function renderLyricsBlock(video, currentBlockIdx = 0) {
+  // 前の歌詞をすべて削除
+  lyricsMap = [];
+  textContainer.innerHTML = "";
 
+  if (!video || !video.phrases) return;
+
+  // 4フレーズごとにブロック化
+  const blockSize = 4;
+  const startPhraseIdx = currentBlockIdx * blockSize;
+  const endPhraseIdx = Math.min(startPhraseIdx + blockSize, video.phrases.length);
+
+  for (let i = startPhraseIdx; i < endPhraseIdx; i++) {
+    const phrase = video.phrases[i];
+    // フレーズ内の文字をspanで追加
+    phrase.children.forEach((ch) => {
+      const charSpan = document.createElement("span");
+      charSpan.textContent = ch.text;
+      charSpan.className = "lyric-char";
+      textContainer.appendChild(charSpan);
+
+      lyricsMap.push({
+        el: charSpan,
+        startTime: ch.startTime,
+        endTime: ch.endTime || ch.startTime + 500,
+        textUnit: ch,
+        phraseIdx: i,
+      });
+    });
+    // フレーズごとに改行
+    textContainer.appendChild(document.createElement("br"));
+  }
 }
-*/
+
+
+function renderLyricsWindow(video, startPhraseIdx = 0, windowSize = 4) {
+  lyricsMap = [];
+  textContainer.innerHTML = "";
+
+  if (!video || !video.phrases) return;
+
+  const endPhraseIdx = Math.min(startPhraseIdx + windowSize, video.phrases.length);
+
+  for (let i = startPhraseIdx; i < endPhraseIdx; i++) {
+    const phrase = video.phrases[i];
+    // フレーズごとにdivでラップ
+    const phraseDiv = document.createElement("div");
+    phraseDiv.className = "lyric-phrase";
+    phrase.children.forEach((ch) => {
+      const charSpan = document.createElement("span");
+      charSpan.textContent = ch.text;
+      charSpan.className = "lyric-char";
+      phraseDiv.appendChild(charSpan);
+
+      lyricsMap.push({
+        el: charSpan,
+        startTime: ch.startTime,
+        endTime: ch.endTime || ch.startTime + 500,
+        textUnit: ch,
+        phraseIdx: i,
+      });
+    });
+    textContainer.appendChild(phraseDiv);
+  }
+}
+
+/**
+ * 歌詞を最大10フレーズまで表示し、再生位置に合わせてウィンドウをスライドさせる
+ */
+function renderLyricsLimited(video, startPhraseIdx = 0, maxPhraseCount = 10) {
+  lyricsMap = [];
+  textContainer.innerHTML = "";
+
+  if (!video || !video.phrases) return;
+
+  // 表示する範囲を決定
+  const endPhraseIdx = Math.min(startPhraseIdx + maxPhraseCount, video.phrases.length);
+
+  for (let i = startPhraseIdx; i < endPhraseIdx; i += 2) {
+    // 2フレーズごとに1行
+    const lineDiv = document.createElement("div");
+    lineDiv.className = "lyric-phrase";
+
+    for (let j = 0; j < 2; j++) {
+      const phraseIdx = i + j;
+      if (phraseIdx >= endPhraseIdx) break;
+      const phrase = video.phrases[phraseIdx];
+      phrase.children.forEach((ch) => {
+        const charSpan = document.createElement("span");
+        charSpan.textContent = ch.text;
+        charSpan.className = "lyric-char";
+        lineDiv.appendChild(charSpan);
+
+        lyricsMap.push({
+          el: charSpan,
+          startTime: ch.startTime,
+          endTime: ch.endTime || ch.startTime + 500,
+          textUnit: ch,
+          phraseIdx: phraseIdx,
+        });
+      });
+      // フレーズ間にスペース
+      if (j === 0) {
+        lineDiv.appendChild(document.createTextNode("　"));
+      }
+    }
+    textContainer.appendChild(lineDiv);
+  }
+}
+
+// 歌詞ウィンドウの状態を管理
+let currentPhraseWindowStart = 0;
+const maxPhraseCount = 10;
+
+// onVideoReadyで最初の10フレーズを表示
+onVideoReady = function(video) {
+  document.querySelector("#artist span").textContent =
+    player.data.song.artist.name;
+  document.querySelector("#song span").textContent = player.data.song.name;
+
+  currentPhraseWindowStart = 0;
+  renderLyricsLimited(video, currentPhraseWindowStart, maxPhraseCount);
+  lastTime = -1;
+};
+
+// onTimeUpdateで進行に合わせてウィンドウをスライド
+onTimeUpdate = function(position) {
+  let activePhraseIdx = -1;
+  const video = player.video;
+  if (!video || !video.phrases) return;
+
+  // 全フレーズから現在位置を特定
+  for (let i = 0; i < video.phrases.length; i++) {
+    const phrase = video.phrases[i];
+    const firstChar = phrase.children[0];
+    const lastChar = phrase.children[phrase.children.length - 1];
+    if (
+      position >= firstChar.startTime &&
+      position < (lastChar.endTime || lastChar.startTime + 500)
+    ) {
+      activePhraseIdx = i;
+      break;
+    }
+  }
+
+  // 2フレーズ消化ごとにウィンドウをスライド
+  if (
+    activePhraseIdx >= 0 &&
+    activePhraseIdx >= currentPhraseWindowStart + 2
+  ) {
+    currentPhraseWindowStart += 2;
+    renderLyricsLimited(player.video, currentPhraseWindowStart, maxPhraseCount);
+  }
+
+  // 歌詞の状態を更新（アニメーション等）
+  lyricsMap.forEach((item) => {
+    if (position >= item.endTime) {
+      item.el.classList.add("sung-lyric");
+      item.el.classList.remove("active-lyric");
+    } else if (position >= item.startTime && position < item.endTime) {
+      item.el.classList.add("active-lyric");
+      item.el.classList.remove("sung-lyric");
+    } else {
+      item.el.classList.remove("active-lyric");
+      item.el.classList.remove("sung-lyric");
+    }
+  });
+
+  // インジケーター位置を更新
+  const percent = position / player.video.duration;
+  seekbarIndicator.style.left = `calc(${percent * 100}% )`;
+
+  lastTime = position;
+
+  const timeIndicator = document.getElementById("time-indicator");
+  function formatTime(ms) {
+    const totalSec = Math.floor(ms / 1000);
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return `${m}分${s}秒`;
+  }
+  if (player && player.video) {
+    timeIndicator.textContent = `${formatTime(position)} / ${formatTime(player.video.duration)}`;
+  }
+};
+
 
 
