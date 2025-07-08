@@ -20,7 +20,7 @@ function App() {
     player.addListener({
       onAppReady: () => {
         player.createFromSongUrl(
-          'https://piapro.jp/t/ULcJ'
+          'http://piapro.jp/t/ULcJ'
         );
       },
 
@@ -47,9 +47,9 @@ function App() {
   };
 
   return (
-    <div className="karaoke-container">
-      <h1>TextAlive Karaoke</h1>
-
+    <div>
+      <h1>TextAlive React App</h1>
+      <p>アプリが読み込まれました</p>
       <button onClick={handlePlay} disabled={!ready} style={{ marginBottom: '1em' }}>
          ▶ 再生
       </button>
