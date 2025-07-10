@@ -16,8 +16,8 @@ function App() {
   const [isDragging, setIsDragging] = useState(false);
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(-1);
   const [shouldResumeAfterSeek, setShouldResumeAfterSeek] = useState(false);
-  const [hoverTime, setHoverTime] = useState(null); // ホバー時間
-  const [hoverPosition, setHoverPosition] = useState({ x: 0, visible: false }); // ホバー位置
+  const [hoverTime, setHoverTime] = useState(null);
+  const [hoverPosition, setHoverPosition] = useState({ x: 0, visible: false });
 
   // 現在のフレーズが変わったときに自動スクロール
   useEffect(() => {
@@ -45,10 +45,8 @@ function App() {
       onAppReady: () => {
         player.createFromSongUrl("https://piapro.jp/t/FDb1/20210213190029", {
           video: {
-            // 音楽地図訂正履歴: https://songle.jp/songs/2121525/history
             beatId: 3953882,
             repetitiveSegmentId: 2099561,
-            // 歌詞タイミング訂正履歴: https://textalive.jp/lyrics/piapro.jp%2Ft%2FFDb1%2F20210213190029
             lyricId: 52065,
             lyricDiffId: 5093,
           },
@@ -58,7 +56,7 @@ function App() {
       onVideoReady: () => {
         setReady(true);
         setDuration(player.video.duration);
-        // フレーズリストを作成
+        
         const phraseList = player.video.phrases.map((phrase, index) => ({
           id: index,
           text: phrase.children.map(char => char.text).join(''),
@@ -71,7 +69,7 @@ function App() {
 
       onPlay: () => {
         setIsPlaying(true);
-        setShouldResumeAfterSeek(false); // 再生開始時にフラグをリセット
+        setShouldResumeAfterSeek(false);
       },
 
       onPause: () => {
@@ -92,12 +90,10 @@ function App() {
       },
 
       onTimeUpdate: (position) => {
-        // ドラッグ中でない場合のみ時間を更新
         if (!isDragging) {
           setCurrentTime(position);
         }
         
-        // シーク後の自動再生処理
         if (shouldResumeAfterSeek && !isPlaying) {
           setShouldResumeAfterSeek(false);
           setTimeout(() => {
@@ -115,14 +111,12 @@ function App() {
                    position < (lastChar.endTime || lastChar.startTime + 500);
           });
 
-          // フレーズが変わった場合のみ更新（無駄なスクロールを防ぐ）
           if (activePhraseIndex !== currentPhraseIndex) {
             setCurrentPhraseIndex(activePhraseIndex);
           }
 
           if (activePhraseIndex !== -1) {
             const activePhrase = player.video.phrases[activePhraseIndex];
-            // フレーズ内の文字をマッピング
             const phraseData = {
               text: activePhrase.children.map(char => char.text).join(''),
               chars: activePhrase.children.map(char => ({
@@ -146,7 +140,7 @@ function App() {
         playerRef.current.dispose();
       }
     };
-  }, []); // 依存配列を空にして、初期化は一度だけ実行
+  }, []);
 
   // シーク後の再生処理用のuseEffect（分離）
   useEffect(() => {
@@ -211,7 +205,6 @@ function App() {
     }
   };
 
-  // 簡潔版のhandleRewind
   const handleRewind = () => {
     if (playerRef.current && playerRef.current.video) {
       const wasPlaying = isPlaying;
@@ -220,7 +213,6 @@ function App() {
       
       setCurrentTime(newTime);
       
-      // 停止中の場合は手動でフレーズ情報を更新
       if (!isPlaying) {
         updatePhraseForTime(newTime);
       }
@@ -233,7 +225,6 @@ function App() {
     }
   };
 
-  // 簡潔版のhandleFastForward
   const handleFastForward = () => {
     if (playerRef.current && playerRef.current.video) {
       const wasPlaying = isPlaying;
@@ -243,7 +234,6 @@ function App() {
       
       setCurrentTime(newTime);
       
-      // 停止中の場合は手動でフレーズ情報を更新
       if (!isPlaying) {
         updatePhraseForTime(newTime);
       }
@@ -256,15 +246,12 @@ function App() {
     }
   };
 
-  // 頭出し機能：指定したフレーズの開始時間にシーク
   const jumpToPhrase = (phraseStartTime) => {
     if (playerRef.current) {
       const wasPlaying = isPlaying;
       
-      // 時間を更新
       setCurrentTime(phraseStartTime);
       
-      // 停止中の場合は手動でフレーズ情報を更新
       if (!isPlaying) {
         updatePhraseForTime(phraseStartTime);
       }
@@ -295,7 +282,6 @@ function App() {
     }
   };
 
-  // シークバーのホバー処理
   const handleSeekBarMouseMove = (e) => {
     const seekBar = e.currentTarget;
     const rect = seekBar.getBoundingClientRect();
@@ -438,9 +424,9 @@ function App() {
         </div>
       </div>
 
-      {/* 歌詞ナビゲーション（右側固定） */}
+      {/* フレーズリスト（右側固定） */}
       <div className="phrase-navigation">
-        <h3>歌詞ナビゲーション</h3>
+        <h3>フレーズリスト</h3>
         <div className="phrase-items" ref={phraseItemsRef}>
           {phrases.map((phrase) => (
             <div
