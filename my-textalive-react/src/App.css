@@ -1,69 +1,737 @@
+/* 全体のリセットと基本設定 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  background: #ffffff;
+}
+
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+}
+
+.app {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 4;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 動画エリア（上部 5/6） */
+.video-area {
+  flex: 5;
+  display: flex;
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* 歌詞表示スペース（全体） */
+.lyrics-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: #ffffff;
+}
+
+.current-phrase {
+  font-size: 3em; /* 4em から 3em に変更 */
+  line-height: 1.3;
   text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
-.karaoke-container {
-  text-align: center;
-  margin-top: 3em;
-  font-family: sans-serif;
-}
-
-.lyrics {
-  font-size: 2em;
-  line-height: 2em;
+  max-width: 90%;
+  letter-spacing: -0.01em;
+  font-weight: 500;
+  color: #333333;
 }
 
 .char {
-  padding: 0 4px;
-  transition: color 0.3s;
+  transition: color 0.2s ease;
+  color: #999999;
+  display: inline-block;
 }
 
 .char.active {
-  color: red;
-  font-weight: bold;
+  color: #2196f3;
+  font-weight: 600;
 }
 
-button {
-  padding: 0.5em 1em;
-  font-size: 1.2em;
+.char.sung {
+  color: #666666;
+}
+
+.no-lyrics {
+  font-size: 2em; /* 2.5em から 2em に変更 */
+  color: #999999;
+  text-align: center;
+  font-weight: 400;
+}
+
+/* 楽曲進行エリア（下部 1/6） - シークバー + 再生コントロール */
+.progress-area {
+  flex: 1;
+  background: #f8f9fa;
+  padding: 15px 30px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* シークバー */
+.seekbar-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.seekbar-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.seekbar {
+  width: 100%;
+  height: 35px;
+  display: flex;
+  align-items: center;
   cursor: pointer;
+  padding: 8px 0;
+}
+
+.seekbar-track {
+  position: relative;
+  width: 100%;
+  height: 5px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.seekbar-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #2196f3, #1976d2);
+  border-radius: 3px;
+  transition: width 0.1s linear;
+}
+
+.seekbar-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  background: #2196f3;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.seekbar:hover .seekbar-thumb {
+  width: 16px;
+  height: 16px;
+  background: #1976d2;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.seekbar:active .seekbar-thumb {
+  width: 15px;
+  height: 15px;
+  background: #1565c0;
+}
+
+/* ホバー時間表示ツールチップ */
+.hover-time-tooltip {
+  position: absolute;
+  bottom: 100%;
+  margin-bottom: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.hover-time-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.8);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* 再生コントロールと時間表示のコンテナ */
+.controls-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.time-info {
+  min-width: 100px;
+}
+
+.time-text {
+  font-size: 1em;
+  color: #333333;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px; /* 25px から 40px に変更 */
+  flex: 1;
+}
+
+.control-button {
+  width: 50px;
+  height: 50px;
+  border: none;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #333333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  position: relative;
+}
+
+/* アイコン画像のスタイル */
+.control-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+.control-button.play {
+  width: 65px; /* 60px から 65px に変更 */
+  height: 65px; /* 60px から 65px に変更 */
+  background: #2196f3;
+  color: white;
+  font-size: 24px; /* 22px から 24px に変更 */
+}
+
+.control-button.rewind,
+.control-button.fast-forward {
+  width: 65px; /* 60px から 65px に変更（再生ボタンと同じサイズ） */
+  height: 65px; /* 60px から 65px に変更（再生ボタンと同じサイズ） */
+  background: transparent;
+  color: #666666;
+  border: none;
+  box-shadow: none;
+}
+
+.control-button.rewind .control-icon,
+.control-button.fast-forward .control-icon {
+  width: 35px; /* 32px から 35px に変更 */
+  height: 35px; /* 32px から 35px に変更 */
+}
+
+.control-button.rewind:hover:not(:disabled),
+.control-button.fast-forward:hover:not(:disabled) {
+  background: rgba(33, 150, 243, 0.1);
+  color: #2196f3;
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: none;
+}
+
+.control-button.rewind:active:not(:disabled),
+.control-button.fast-forward:active:not(:disabled) {
+  background: rgba(33, 150, 243, 0.2);
+  transform: translateY(0) scale(1.05);
+  box-shadow: none;
+}
+
+.control-button.rewind:disabled,
+.control-button.fast-forward:disabled {
+  background: transparent;
+  color: #cccccc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ホバー時間表示ツールチップ */
+.hover-time-tooltip {
+  position: absolute;
+  bottom: 100%;
+  margin-bottom: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.hover-time-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.8);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* 再生コントロールと時間表示のコンテナ */
+.controls-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.time-info {
+  min-width: 100px;
+}
+
+.time-text {
+  font-size: 1em;
+  color: #333333;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px; /* 25px から 40px に変更 */
+  flex: 1;
+}
+
+.control-button {
+  width: 50px;
+  height: 50px;
+  border: none;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #333333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  position: relative;
+}
+
+/* アイコン画像のスタイル */
+.control-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+.control-button.play {
+  width: 65px; /* 60px から 65px に変更 */
+  height: 65px; /* 60px から 65px に変更 */
+  background: #2196f3;
+  color: white;
+  font-size: 24px; /* 22px から 24px に変更 */
+}
+
+.control-button.rewind,
+.control-button.fast-forward {
+  width: 65px; /* 60px から 65px に変更（再生ボタンと同じサイズ） */
+  height: 65px; /* 60px から 65px に変更（再生ボタンと同じサイズ） */
+  background: transparent;
+  color: #666666;
+  border: none;
+  box-shadow: none;
+}
+
+.control-button.rewind .control-icon,
+.control-button.fast-forward .control-icon {
+  width: 35px; /* 32px から 35px に変更 */
+  height: 35px; /* 32px から 35px に変更 */
+}
+
+.control-button.rewind:hover:not(:disabled),
+.control-button.fast-forward:hover:not(:disabled) {
+  background: rgba(33, 150, 243, 0.1);
+  color: #2196f3;
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: none;
+}
+
+.control-button.rewind:active:not(:disabled),
+.control-button.fast-forward:active:not(:disabled) {
+  background: rgba(33, 150, 243, 0.2);
+  transform: translateY(0) scale(1.05);
+  box-shadow: none;
+}
+
+.control-button.rewind:disabled,
+.control-button.fast-forward:disabled {
+  background: transparent;
+  color: #cccccc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* 歌詞ナビゲーション（右側固定） */
+.phrase-navigation {
+  flex: 1;
+  background: #fafafa;
+  border-left: 1px solid #e0e0e0;
+  padding: 25px 20px;
+  overflow-y: auto;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.phrase-navigation h3 {
+  margin: 0 0 20px 0;
+  color: #333333;
+  font-size: 1.3em;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 2px solid #2196f3;
+  padding-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.phrase-items {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  scroll-behavior: smooth; /* スムーズスクロールを有効化 */
+  scroll-padding-top: 20px; /* スクロール時の上部マージン */
+  scroll-padding-bottom: 20px; /* スクロール時の下部マージン */
+}
+
+.phrase-item {
+  padding: 15px 18px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9em;
+  line-height: 1.4;
+  flex-shrink: 0;
+  scroll-margin: 20px; /* スクロール時のアイテム周りのマージン */
+}
+
+/* 発声中のフレーズの強調表示 */
+.phrase-item.active {
+  background: #ffebee;
+  border: 2px solid #f44336;
+  border-radius: 8px;
+  transform: translateX(6px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.2);
+  animation: pulse-red 1.5s infinite;
+  /* スクロール時により目立つようにz-indexを設定 */
+  position: relative;
+  z-index: 2;
+}
+
+.phrase-item.active .phrase-text {
+  color: #d32f2f;
+  font-weight: 600;
+}
+
+.phrase-item.active:hover {
+  background: #ffcdd2;
+  border-color: #d32f2f;
+  transform: translateX(8px);
+  box-shadow: 0 6px 16px rgba(244, 67, 54, 0.3);
+}
+
+/* 発声中フレーズのパルスアニメーション */
+@keyframes pulse-red {
+  0% {
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.2);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(244, 67, 54, 0.4);
+  }
+  100% {
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.2);
+  }
+}
+
+.phrase-text {
+  display: block;
+  color: #333333;
+  word-break: break-all;
+  font-weight: 500;
+}
+
+/* カスタムスクロールバー */
+.phrase-items::-webkit-scrollbar {
+  width: 8px; /* 少し太くして視認性向上 */
+}
+
+.phrase-items::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.phrase-items::-webkit-scrollbar-thumb {
+  background: #cccccc;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+.phrase-items::-webkit-scrollbar-thumb:hover {
+  background: #999999;
+}
+
+/* スクロール中のアニメーション効果を軽減（パフォーマンス向上） */
+@media (prefers-reduced-motion: reduce) {
+  .phrase-items {
+    scroll-behavior: auto;
+  }
+  
+  .phrase-item.active {
+    animation: none;
+  }
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+  
+  .main-content {
+    flex: 3;
+  }
+  
+  .lyrics-container {
+    padding: 30px 20px;
+  }
+  
+  .current-phrase {
+    font-size: 2.2em; /* 2.8em から 2.2em に変更 */
+  }
+  
+  .progress-area {
+    padding: 12px 20px;
+    gap: 10px;
+  }
+  
+  .seekbar-container {
+    gap: 10px;
+  }
+  
+  .time-display {
+    font-size: 0.75em;
+    min-width: 30px;
+  }
+  
+  .seekbar {
+    height: 30px;
+  }
+  
+  .controls-container {
+    gap: 30px; /* 20px から 30px に変更 */
+  }
+  
+  .time-info {
+    min-width: 80px;
+  }
+  
+  .time-text {
+    font-size: 0.9em;
+  }
+  
+  .controls {
+    gap: 20px;
+  }
+  
+  .control-button {
+    width: 45px;
+    height: 45px;
+    font-size: 16px;
+  }
+  
+  .control-icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .control-button.play {
+    width: 60px; /* 55px から 60px に変更 */
+    height: 60px; /* 55px から 60px に変更 */
+    font-size: 22px; /* 20px から 22px に変更 */
+  }
+  
+  .control-button.rewind,
+  .control-button.fast-forward {
+    width: 60px; /* 55px から 60px に変更（再生ボタンと同じサイズ） */
+    height: 60px; /* 55px から 60px に変更（再生ボタンと同じサイズ） */
+  }
+  
+  .control-button.rewind .control-icon,
+  .control-button.fast-forward .control-icon {
+    width: 32px; /* 28px から 32px に変更 */
+    height: 32px; /* 28px から 32px に変更 */
+  }
+  
+  /* ...existing code... */
+}
+
+@media (max-height: 600px) {
+  .lyrics-container {
+    padding: 20px;
+  }
+  
+  .current-phrase {
+    font-size: 2.5em; /* 3.2em から 2.5em に変更 */
+  }
+  
+  .controls {
+    gap: 25px; /* 15px から 25px に変更 */
+  }
+  
+  .control-button {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+  }
+  
+  .control-icon {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .control-button.play {
+    width: 55px; /* 50px から 55px に変更 */
+    height: 55px; /* 50px から 55px に変更 */
+    font-size: 20px; /* 18px から 20px に変更 */
+  }
+  
+  .control-button.rewind,
+  .control-button.fast-forward {
+    width: 55px; /* 50px から 55px に変更（再生ボタンと同じサイズ） */
+    height: 55px; /* 50px から 55px に変更（再生ボタンと同じサイズ） */
+  }
+  
+  .control-button.rewind .control-icon,
+  .control-button.fast-forward .control-icon {
+    width: 30px; /* 26px から 30px に変更 */
+    height: 30px; /* 26px から 30px に変更 */
+  }
+  
+  /* ...existing code... */
+}
+
+@media (max-width: 480px) {
+  .controls-container {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .time-info {
+    min-width: auto;
+    text-align: center;
+  }
+  
+  .time-text {
+    font-size: 0.8em;
+  }
+  
+  .controls {
+    gap: 20px; /* 12px から 20px に変更 */
+  }
+  
+  .control-icon {
+    width: 18px; /* 16px から 18px に変更 */
+    height: 18px; /* 16px から 18px に変更 */
+  }
+  
+  .control-button.rewind,
+  .control-button.fast-forward {
+    width: 50px; /* 48px から 50px に変更（再生ボタンと同じサイズ） */
+    height: 50px; /* 48px から 50px に変更（再生ボタンと同じサイズ） */
+  }
+  
+  .control-button.rewind .control-icon,
+  .control-button.fast-forward .control-icon {
+    width: 26px; /* 22px から 26px に変更 */
+    height: 26px; /* 22px から 26px に変更 */
+  }
+}
+
+/* フォーカス時のアクセシビリティ */
+.control-button:focus-visible {
+  outline: 2px solid #2196f3;
+  outline-offset: 2px;
+}
+
+.phrase-item:focus-visible {
+  outline: 2px solid #2196f3;
+  outline-offset: 2px;
 }
