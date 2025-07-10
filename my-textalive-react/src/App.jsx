@@ -83,7 +83,6 @@ function App() {
         setCurrentTime(0);
         setCurrentPhraseIndex(-1);
         setShouldResumeAfterSeek(false);
-        // 停止時は先頭にスクロール
         if (phraseItemsRef.current) {
           phraseItemsRef.current.scrollTo({
             top: 0,
@@ -93,6 +92,7 @@ function App() {
       },
 
       onTimeUpdate: (position) => {
+        // ドラッグ中でない場合のみ時間を更新
         if (!isDragging) {
           setCurrentTime(position);
         }
@@ -108,7 +108,6 @@ function App() {
         }
         
         if (player.video && player.video.phrases) {
-          // 現在再生中のフレーズを検索
           const activePhraseIndex = player.video.phrases.findIndex(phrase => {
             const firstChar = phrase.children[0];
             const lastChar = phrase.children[phrase.children.length - 1];
@@ -181,11 +180,50 @@ function App() {
     }
   };
 
+  // フレーズ情報を更新するヘルパー関数
+  const updatePhraseForTime = (time) => {
+    if (playerRef.current.video && playerRef.current.video.phrases) {
+      const activePhraseIndex = playerRef.current.video.phrases.findIndex(phrase => {
+        const firstChar = phrase.children[0];
+        const lastChar = phrase.children[phrase.children.length - 1];
+        return time >= firstChar.startTime && 
+               time < (lastChar.endTime || lastChar.startTime + 500);
+      });
+
+      setCurrentPhraseIndex(activePhraseIndex);
+
+      if (activePhraseIndex !== -1) {
+        const activePhrase = playerRef.current.video.phrases[activePhraseIndex];
+        const phraseData = {
+          text: activePhrase.children.map(char => char.text).join(''),
+          chars: activePhrase.children.map(char => ({
+            text: char.text,
+            startTime: char.startTime,
+            endTime: char.endTime || char.startTime + 500,
+            isActive: time >= char.startTime && time < (char.endTime || char.startTime + 500),
+            isSung: time >= (char.endTime || char.startTime + 500)
+          }))
+        };
+        setCurrentPhrase(phraseData);
+      } else {
+        setCurrentPhrase(null);
+      }
+    }
+  };
+
+  // 簡潔版のhandleRewind
   const handleRewind = () => {
     if (playerRef.current && playerRef.current.video) {
       const wasPlaying = isPlaying;
-      const currentTime = playerRef.current.timer.position;
-      const newTime = Math.max(0, currentTime - 10000);
+      const currentPos = isPlaying ? playerRef.current.timer.position : currentTime;
+      const newTime = Math.max(0, currentPos - 10000);
+      
+      setCurrentTime(newTime);
+      
+      // 停止中の場合は手動でフレーズ情報を更新
+      if (!isPlaying) {
+        updatePhraseForTime(newTime);
+      }
       
       if (wasPlaying) {
         setShouldResumeAfterSeek(true);
@@ -195,12 +233,20 @@ function App() {
     }
   };
 
+  // 簡潔版のhandleFastForward
   const handleFastForward = () => {
     if (playerRef.current && playerRef.current.video) {
       const wasPlaying = isPlaying;
-      const currentTime = playerRef.current.timer.position;
+      const currentPos = isPlaying ? playerRef.current.timer.position : currentTime;
       const duration = playerRef.current.video.duration;
-      const newTime = Math.min(duration, currentTime + 10000);
+      const newTime = Math.min(duration, currentPos + 10000);
+      
+      setCurrentTime(newTime);
+      
+      // 停止中の場合は手動でフレーズ情報を更新
+      if (!isPlaying) {
+        updatePhraseForTime(newTime);
+      }
       
       if (wasPlaying) {
         setShouldResumeAfterSeek(true);
@@ -215,7 +261,14 @@ function App() {
     if (playerRef.current) {
       const wasPlaying = isPlaying;
       
-      // 再生中だった場合は、シーク後に再生を再開するフラグを設定
+      // 時間を更新
+      setCurrentTime(phraseStartTime);
+      
+      // 停止中の場合は手動でフレーズ情報を更新
+      if (!isPlaying) {
+        updatePhraseForTime(phraseStartTime);
+      }
+      
       if (wasPlaying) {
         setShouldResumeAfterSeek(true);
       }
@@ -362,7 +415,7 @@ function App() {
                 disabled={!ready}
                 title="10秒戻し"
               >
-                <img src={skip} alt="10秒戻し" className="control-icon" />
+                <img src={rewind} alt="10秒戻し" className="control-icon" />
               </button>
               <button 
                 className="control-button play" 
@@ -378,7 +431,7 @@ function App() {
                 disabled={!ready}
                 title="10秒送り"
               >
-                <img src={rewind} alt="10秒送り" className="control-icon" />
+                <img src={skip} alt="10秒送り" className="control-icon" />
               </button>
             </div>
           </div>
