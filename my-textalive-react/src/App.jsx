@@ -391,31 +391,60 @@ function App() {
 
           {/* 再生コントロールと時間表示 */}
           <div className="controls-container">
-            <div className="time-info">
-              <span className="time-text">{formatTime(currentTime)} / {formatTime(duration)}</span>
-            </div>
             <div className="controls">
               <button 
                 className="control-button rewind" 
-                onClick={handleRewind} 
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  document.activeElement?.blur();
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleRewind();
+                }} 
                 disabled={!ready}
                 title="10秒戻し"
+                tabIndex={-1}
               >
                 <img src={rewind} alt="10秒戻し" className="control-icon" />
               </button>
               <button 
                 className="control-button play" 
-                onClick={isPlaying ? handlePause : handlePlay} 
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  document.activeElement?.blur();
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Play/Pause button clicked, isPlaying:', isPlaying, 'ready:', ready);
+                  if (isPlaying) {
+                    handlePause();
+                  } else {
+                    handlePlay();
+                  }
+                }} 
                 disabled={!ready}
                 title={isPlaying ? "一時停止" : "再生"}
+                tabIndex={-1}
               >
                 {isPlaying ? '⏸' : '▶'}
               </button>
               <button 
                 className="control-button fast-forward" 
-                onClick={handleFastForward} 
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  document.activeElement?.blur();
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleFastForward();
+                }} 
                 disabled={!ready}
                 title="10秒送り"
+                tabIndex={-1}
               >
                 <img src={skip} alt="10秒送り" className="control-icon" />
               </button>

@@ -204,9 +204,12 @@ html, body {
 .controls-container {
   display: flex;
   align-items: center;
-  gap: 20px;
+  justify-content: center; /* gap: 20px から justify-content: center に変更 */
+  padding: 25px 0; /* 縦幅を増やすためのパディング追加 */
 }
 
+/* 時間表示部分を削除（コメントアウト） */
+/*
 .time-info {
   min-width: 100px;
 }
@@ -217,13 +220,22 @@ html, body {
   font-weight: 600;
   font-family: 'Courier New', monospace;
 }
+*/
 
 .controls {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 40px; /* 25px から 40px に変更 */
-  flex: 1;
+  gap: 40px;
+  flex: none; /* flex: 1 から flex: none に変更 */
+}
+
+/* アイコン画像のスタイル */
+.control-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  transition: all 0.3s ease;
 }
 
 .control-button {
@@ -242,151 +254,6 @@ html, body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #e0e0e0;
   position: relative;
-}
-
-/* アイコン画像のスタイル */
-.control-icon {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  transition: all 0.3s ease;
-}
-
-.control-button.play {
-  width: 65px; /* 60px から 65px に変更 */
-  height: 65px; /* 60px から 65px に変更 */
-  background: #2196f3;
-  color: white;
-  font-size: 24px; /* 22px から 24px に変更 */
-}
-
-.control-button.rewind,
-.control-button.fast-forward {
-  width: 65px; /* 60px から 65px に変更（再生ボタンと同じサイズ） */
-  height: 65px; /* 60px から 65px に変更（再生ボタンと同じサイズ） */
-  background: transparent;
-  color: #666666;
-  border: none;
-  box-shadow: none;
-}
-
-.control-button.rewind .control-icon,
-.control-button.fast-forward .control-icon {
-  width: 35px; /* 32px から 35px に変更 */
-  height: 35px; /* 32px から 35px に変更 */
-}
-
-.control-button.rewind:hover:not(:disabled),
-.control-button.fast-forward:hover:not(:disabled) {
-  background: rgba(33, 150, 243, 0.1);
-  color: #2196f3;
-  transform: translateY(-2px) scale(1.1);
-  box-shadow: none;
-}
-
-.control-button.rewind:active:not(:disabled),
-.control-button.fast-forward:active:not(:disabled) {
-  background: rgba(33, 150, 243, 0.2);
-  transform: translateY(0) scale(1.05);
-  box-shadow: none;
-}
-
-.control-button.rewind:disabled,
-.control-button.fast-forward:disabled {
-  background: transparent;
-  color: #cccccc;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-/* ホバー時間表示ツールチップ */
-.hover-time-tooltip {
-  position: absolute;
-  bottom: 100%;
-  margin-bottom: 8px;
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.75em;
-  font-weight: 500;
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 10;
-  animation: fadeIn 0.2s ease-in-out;
-}
-
-.hover-time-tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 4px solid transparent;
-  border-top-color: rgba(0, 0, 0, 0.8);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
-
-/* 再生コントロールと時間表示のコンテナ */
-.controls-container {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.time-info {
-  min-width: 100px;
-}
-
-.time-text {
-  font-size: 1em;
-  color: #333333;
-  font-weight: 600;
-  font-family: 'Courier New', monospace;
-}
-
-.controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 40px; /* 25px から 40px に変更 */
-  flex: 1;
-}
-
-.control-button {
-  width: 50px;
-  height: 50px;
-  border: none;
-  border-radius: 50%;
-  background: #ffffff;
-  color: #333333;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e0e0e0;
-  position: relative;
-}
-
-/* アイコン画像のスタイル */
-.control-icon {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  transition: all 0.3s ease;
 }
 
 .control-button.play {
@@ -596,51 +463,13 @@ html, body {
   }
   
   .controls-container {
-    gap: 30px; /* 20px から 30px に変更 */
-  }
-  
-  .time-info {
-    min-width: 80px;
-  }
-  
-  .time-text {
-    font-size: 0.9em;
+    justify-content: center; /* 中央揃えを維持 */
+    padding: 20px 0; /* モバイルでもパディング追加 */
   }
   
   .controls {
-    gap: 20px;
+    gap: 30px;
   }
-  
-  .control-button {
-    width: 45px;
-    height: 45px;
-    font-size: 16px;
-  }
-  
-  .control-icon {
-    width: 20px;
-    height: 20px;
-  }
-  
-  .control-button.play {
-    width: 60px; /* 55px から 60px に変更 */
-    height: 60px; /* 55px から 60px に変更 */
-    font-size: 22px; /* 20px から 22px に変更 */
-  }
-  
-  .control-button.rewind,
-  .control-button.fast-forward {
-    width: 60px; /* 55px から 60px に変更（再生ボタンと同じサイズ） */
-    height: 60px; /* 55px から 60px に変更（再生ボタンと同じサイズ） */
-  }
-  
-  .control-button.rewind .control-icon,
-  .control-button.fast-forward .control-icon {
-    width: 32px; /* 28px から 32px に変更 */
-    height: 32px; /* 28px から 32px に変更 */
-  }
-  
-  /* ...existing code... */
 }
 
 @media (max-height: 600px) {
@@ -652,76 +481,26 @@ html, body {
     font-size: 2.5em; /* 3.2em から 2.5em に変更 */
   }
   
+  .controls-container {
+    justify-content: center;
+    padding: 15px 0; /* 小さい画面でもパディング調整 */
+  }
+  
   .controls {
-    gap: 25px; /* 15px から 25px に変更 */
+    gap: 25px;
   }
-  
-  .control-button {
-    width: 40px;
-    height: 40px;
-    font-size: 14px;
-  }
-  
-  .control-icon {
-    width: 18px;
-    height: 18px;
-  }
-  
-  .control-button.play {
-    width: 55px; /* 50px から 55px に変更 */
-    height: 55px; /* 50px から 55px に変更 */
-    font-size: 20px; /* 18px から 20px に変更 */
-  }
-  
-  .control-button.rewind,
-  .control-button.fast-forward {
-    width: 55px; /* 50px から 55px に変更（再生ボタンと同じサイズ） */
-    height: 55px; /* 50px から 55px に変更（再生ボタンと同じサイズ） */
-  }
-  
-  .control-button.rewind .control-icon,
-  .control-button.fast-forward .control-icon {
-    width: 30px; /* 26px から 30px に変更 */
-    height: 30px; /* 26px から 30px に変更 */
-  }
-  
-  /* ...existing code... */
 }
 
 @media (max-width: 480px) {
   .controls-container {
     flex-direction: column;
     gap: 8px;
-  }
-  
-  .time-info {
-    min-width: auto;
-    text-align: center;
-  }
-  
-  .time-text {
-    font-size: 0.8em;
+    justify-content: center;
+    padding: 20px 0; /* モバイルでもパディング */
   }
   
   .controls {
-    gap: 20px; /* 12px から 20px に変更 */
-  }
-  
-  .control-icon {
-    width: 18px; /* 16px から 18px に変更 */
-    height: 18px; /* 16px から 18px に変更 */
-  }
-  
-  .control-button.rewind,
-  .control-button.fast-forward {
-    width: 50px; /* 48px から 50px に変更（再生ボタンと同じサイズ） */
-    height: 50px; /* 48px から 50px に変更（再生ボタンと同じサイズ） */
-  }
-  
-  .control-button.rewind .control-icon,
-  .control-button.fast-forward .control-icon {
-    width: 26px; /* 22px から 26px に変更 */
-    height: 26px; /* 22px から 26px に変更 */
+    gap: 20px;
   }
 }
 
