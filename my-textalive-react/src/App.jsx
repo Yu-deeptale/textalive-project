@@ -74,6 +74,7 @@ function App() {
 
       onPause: () => {
         setIsPlaying(false);
+        setShouldResumeAfterSeek(false); // 一時停止時は自動再生フラグをクリア
       },
 
       onStop: () => {
@@ -164,6 +165,7 @@ function App() {
 
   const handlePause = () => {
     if (playerRef.current) {
+      setShouldResumeAfterSeek(false); // 手動一時停止時も自動再生フラグをクリア
       playerRef.current.requestPause();
     }
   };
