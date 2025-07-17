@@ -361,11 +361,11 @@ function App() {
     return result;
   };
 
-  // 音程を0-100%の高さに正規化（100Hz-500Hzの範囲を想定）
+  // 音程を0-100%の高さに正規化（70Hz-700Hzの範囲を想定）
   const normalizePitch = (hz) => {
     if (hz === 0) return 0;
-    const minHz = 100; // より狭い範囲で音程差を強調
-    const maxHz = 500;
+    const minHz = 70; // 下に0.5オクターブ拡張（約100Hz → 70Hz）
+    const maxHz = 700; // 上に0.5オクターブ拡張（約500Hz → 700Hz）
     const normalizedHz = Math.max(minHz, Math.min(maxHz, hz));
     const result = ((normalizedHz - minHz) / (maxHz - minHz)) * 100;
     console.log(`音程正規化: ${hz}Hz -> ${result}%`);
