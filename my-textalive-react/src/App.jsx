@@ -18,6 +18,7 @@ function App() {
   const [shouldResumeAfterSeek, setShouldResumeAfterSeek] = useState(false);
   const [hoverTime, setHoverTime] = useState(null);
   const [hoverPosition, setHoverPosition] = useState({ x: 0, visible: false });
+  const [pitchData, setPitchData] = useState([]); // 音程データを保存
 
   // 現在のフレーズが変わったときに自動スクロール
   useEffect(() => {
@@ -56,6 +57,24 @@ function App() {
       onVideoReady: () => {
         setReady(true);
         setDuration(player.video.duration);
+        
+        // 音程データを取得
+        if (player.video.pitches && player.video.pitches.length > 0) {
+          console.log('音程データが取得されました:', player.video.pitches.length, '個のデータポイント');
+          console.log('最初の3つの音程データ:', player.video.pitches.slice(0, 3));
+          setPitchData(player.video.pitches);
+        } else {
+          console.log('音程データが見つかりませんでした。ダミーデータを生成します。');
+          // ダミーの音程データを生成（テスト用）
+          const dummyPitches = [];
+          for (let i = 0; i < player.video.duration; i += 500) {
+            dummyPitches.push({
+              startTime: i,
+              hz: 200 + Math.sin(i / 1000) * 100 + Math.random() * 50
+            });
+          }
+          setPitchData(dummyPitches);
+        }
         
         const phraseList = player.video.phrases.map((phrase, index) => ({
           id: index,
@@ -314,6 +333,77 @@ function App() {
     setIsDragging(false);
   };
 
+  // 音程データから指定時間の音程を取得
+  const getPitchAtTime = (time) => {
+    if (!pitchData || pitchData.length === 0) {
+      console.log('音程データがありません。pitchData:', pitchData);
+      return 0;
+    }
+    
+    // 指定時間に最も近い音程データを検索
+    let closestPitch = null;
+    let minDistance = Infinity;
+    
+    for (let pitch of pitchData) {
+      const distance = Math.abs(pitch.startTime - time);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestPitch = pitch;
+      }
+    }
+    
+    const result = closestPitch ? closestPitch.hz : 0;
+    if (result > 0) {
+      console.log(`時間 ${time}ms での音程: ${result}Hz (距離: ${minDistance}ms)`);
+    } else {
+      console.log(`時間 ${time}ms で音程データが見つかりませんでした`);
+    }
+    return result;
+  };
+
+  // 音程を0-100%の高さに正規化（100Hz-500Hzの範囲を想定）
+  const normalizePitch = (hz) => {
+    if (hz === 0) return 0;
+    const minHz = 100; // より狭い範囲で音程差を強調
+    const maxHz = 500;
+    const normalizedHz = Math.max(minHz, Math.min(maxHz, hz));
+    const result = ((normalizedHz - minHz) / (maxHz - minHz)) * 100;
+    console.log(`音程正規化: ${hz}Hz -> ${result}%`);
+    return result;
+  };
+
+  // 音程（Hz）を音階名に変換
+  const hzToNoteName = (hz) => {
+    if (hz === 0) return '';
+    
+    // A4 = 440Hz を基準とする
+    const A4 = 440;
+    const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    
+    // 半音の数を計算（A4から何半音離れているか）
+    const semitones = Math.round(12 * Math.log2(hz / A4));
+    
+    // オクターブを計算
+    const octave = 4 + Math.floor(semitones / 12);
+    
+    // 音名のインデックスを計算（Aが9番目なので調整）
+    const noteIndex = (9 + semitones) % 12;
+    const adjustedIndex = noteIndex < 0 ? noteIndex + 12 : noteIndex;
+    
+    return `${noteNames[adjustedIndex]}${octave}`;
+  };
+
+  // 現在発声中の音階を取得
+  const getCurrentNote = () => {
+    if (!currentPhrase) return '';
+    
+    const activeChar = currentPhrase.chars.find(char => char.isActive);
+    if (!activeChar) return '';
+    
+    const pitch = getPitchAtTime(activeChar.startTime);
+    return hzToNoteName(pitch);
+  };
+
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60000);
     const seconds = Math.floor((time % 60000) / 1000);
@@ -329,16 +419,41 @@ function App() {
         <div className="video-area">
           {/* 歌詞表示スペース（全体） */}
           <div className="lyrics-container">
+            {/* 曲名・アーティスト名表示 - エリア左上に配置 */}
+            <div className="song-info">
+              <span className="song-title">♪First Note</span>
+              <span className="artist-name">Artist : blues</span>
+            </div>
+            {/* 音階表示 - エリア右下に配置 */}
+            <div className="current-note">
+              {getCurrentNote()}
+            </div>
             {currentPhrase ? (
               <div className="current-phrase">
-                {currentPhrase.chars.map((char, i) => (
-                  <span
-                    key={i}
-                    className={`char ${char.isActive ? 'active' : ''} ${char.isSung ? 'sung' : ''}`}
-                  >
-                    {char.text}
-                  </span>
-                ))}
+                {currentPhrase.chars.map((char, i) => {
+                  const pitch = getPitchAtTime(char.startTime);
+                  const pitchHeight = normalizePitch(pitch);
+                  // 音程バーの上端位置を計算（音程が高いほど上に配置）
+                  const barTop = 100 - pitchHeight; // 100%から音程の高さを引いて上端位置を決定
+                  const barHeight = 20; // 音程バーの固定の高さ（%）
+                  
+                  return (
+                    <span
+                      key={i}
+                      className={`char ${char.isActive ? 'active' : ''} ${char.isSung ? 'sung' : ''}`}
+                    >
+                      {/* 音程の棒グラフ背景 */}
+                      <span 
+                        className={`pitch-bar ${char.isActive ? 'active' : ''}`}
+                        style={{
+                          top: `${barTop}%`, // 上端の位置を音程に応じて設定
+                          height: `${barHeight}%`, // 固定の高さを設定
+                        }}
+                      />
+                      {char.text}
+                    </span>
+                  );
+                })}
               </div>
             ) : (
               <div className="no-lyrics">
@@ -352,7 +467,6 @@ function App() {
         <div className="progress-area">
           {/* シークバー */}
           <div className="seekbar-container">
-            <span className="time-display current-time">{formatTime(currentTime)}</span>
             <div className="seekbar-wrapper">
               <div 
                 className="seekbar"
@@ -388,11 +502,11 @@ function App() {
                 </div>
               )}
             </div>
-            <span className="time-display duration-time">{formatTime(duration)}</span>
           </div>
 
           {/* 再生コントロールと時間表示 */}
           <div className="controls-container">
+            <span className="time-display">{formatTime(currentTime)} / {formatTime(duration)}</span>
             <div className="controls">
               <button 
                 className="control-button rewind" 
