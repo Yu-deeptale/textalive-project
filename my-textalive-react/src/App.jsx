@@ -434,7 +434,9 @@ function App() {
                   const pitch = getPitchAtTime(char.startTime);
                   const pitchHeight = normalizePitch(pitch);
                   // 音程バーの上端位置を計算（音程が高いほど上に配置）
-                  const barTop = 100 - pitchHeight; // 100%から音程の高さを引いて上端位置を決定
+                  // 全体的に上に移動するためのオフセットを追加
+                  const verticalOffset = 20; // 上に移動するオフセット（%）
+                  const barTop = Math.max(0, 100 - pitchHeight - verticalOffset); // 下限を0%に制限
                   const barHeight = 20; // 音程バーの固定の高さ（%）
                   
                   return (
