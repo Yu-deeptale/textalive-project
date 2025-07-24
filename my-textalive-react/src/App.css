@@ -113,16 +113,16 @@ html, body {
   border-radius: 4px 4px 0 0; /* 角を少し丸く */
   transition: all 0.3s ease;
   z-index: -1; /* 1から-1に下げて歌詞より確実に後ろに配置 */
-  /* 半透明の黄色系統グラデーション */
-  background: linear-gradient(to top, rgba(255, 179, 0, 0.3), rgba(255, 213, 79, 0.3)); /* 透明度を0.4から0.3に下げる */
-  box-shadow: 0 0 8px rgba(255, 179, 0, 0.1); /* 影も薄く */
-  border: 1px solid rgba(255, 179, 0, 0.2); /* ボーダーも薄く */
+  /* 半透明の赤系統グラデーション */
+  background: linear-gradient(to top, rgba(244, 67, 54, 0.3), rgba(255, 99, 71, 0.3)); /* 赤系統に変更 */
+  box-shadow: 0 0 8px rgba(244, 67, 54, 0.1); /* 影も赤系統に */
+  border: 1px solid rgba(244, 67, 54, 0.2); /* ボーダーも赤系統に */
 }
 
 .pitch-bar.active {
-  background: linear-gradient(to top, rgba(255, 143, 0, 0.4), rgba(255, 204, 2, 0.4)); /* 透明度を0.6から0.4に下げる */
-  box-shadow: 0 0 15px rgba(255, 143, 0, 0.2); /* 影を0.4から0.2に薄く */
-  border: 1px solid rgba(255, 143, 0, 0.3); /* ボーダーを0.5から0.3に薄く */
+  background: linear-gradient(to top, rgba(244, 67, 54, 0.4), rgba(255, 87, 34, 0.4)); /* より濃い赤系統に変更 */
+  box-shadow: 0 0 15px rgba(244, 67, 54, 0.2); /* 影を赤系統に */
+  border: 1px solid rgba(244, 67, 54, 0.3); /* ボーダーを赤系統に */
 }
 
 .no-lyrics {
