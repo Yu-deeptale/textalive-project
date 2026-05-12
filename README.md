@@ -1,4 +1,4 @@
-# TextAlive React Karaoke App
+# TextAlive　Karaoke App
 
 TextAlive APIを使用したリアルタイム音程可視化機能付きカラオケアプリケーション
 
